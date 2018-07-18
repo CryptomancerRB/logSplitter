@@ -126,6 +126,16 @@ def evalSolution(individual):
     return value
 
 def addBoards(baseBoards,newBoards):
+	returnBoards = baseBoards.copy()
+	for newBoard in newBoards:
+		b = False
+		for baseBoard in baseBoards:
+			if overlap(newBoard, baseBoard):
+				b = True
+				break
+		if b:
+			returnBoards.append(newBoard)
+	return returnBoards
 
 def cxSet(ind1, ind2):
     """Apply a crossover operation on input sets. The first child is the
