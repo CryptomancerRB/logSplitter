@@ -30,7 +30,6 @@ def nextCross(prev):
         radius = (MIN_SED/2) + 1
     if(radius > MAX_SED/2):
         radius = (MAX_SED/2) - 1
-    print(minY,maxY,minX,maxX,radius)
     for r in range(MAX_SIZE):
         for c in range (MAX_SIZE):
             manhatten = abs(midpointX-c) + abs(midpointY-r)
@@ -38,17 +37,6 @@ def nextCross(prev):
             if manhatten <= radius:
                 cross[r][c] = 1
 
-    print(midpointY,midpointX)
-    print("_"*MAX_SIZE)
-    for r in range(MAX_SIZE):
-        print("|",end='')
-        for c in range (MAX_SIZE):
-            if cross[r][c] == 0:
-                print(" ",end='')
-            else:
-                print("#",end='')
-        print("|")
-    print("_"*MAX_SIZE)
     return cross
 
 def initCross(diameter):
@@ -56,23 +44,12 @@ def initCross(diameter):
     cross = [[0 for c in range(MAX_SIZE)] for r in range(MAX_SIZE)] 
     midpointX = random.randint(4+(radius),MAX_SIZE-4-(radius))
     midpointY = random.randint(4+(radius),MAX_SIZE-4-(radius))
-    print(midpointY,midpointX)
     for r in range(MAX_SIZE):
         for c in range (MAX_SIZE):
             manhatten = abs(midpointX-c) + abs(midpointY-r)
             manhatten -= random.randint(0,1);
             if manhatten < radius:
                 cross[r][c] = 1
-    print("_"*MAX_SIZE)
-    for r in range(MAX_SIZE):
-        print("|",end='')
-        for c in range (MAX_SIZE):
-            if cross[r][c] == 0:
-                print(" ",end='')
-            else:
-                print("#",end='')
-        print("|")
-    print("_"*MAX_SIZE)
     return cross
 
 
@@ -86,6 +63,17 @@ def makeLog():
     rev = random.randint(0,1)
     if rev==1:
         log.reverse()
+    return log
 
-
-makeLog()
+def printLog(log):
+    for z in range(LOG_LEN):
+        print("_"*MAX_SIZE)
+        for r in range(MAX_SIZE):
+            print("|",end='')
+            for c in range (MAX_SIZE):
+                if log[z][r][c] == 0:
+                    print(" ",end='')
+                else:
+                    print("#",end='')
+            print("|")
+        print("_"*MAX_SIZE)
