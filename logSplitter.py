@@ -19,6 +19,8 @@ import logArray
 
 import numpy
 
+import csv
+
 from deap import algorithms
 from deap import base
 from deap import creator
@@ -27,7 +29,7 @@ from deap import tools
 IND_INIT_SIZE = 5
 MAX_ITEM = 50
 MAX_WEIGHT = 50
-NBR_ITEMS = 20
+NBR_ITEMS = 0
 
 # To assure reproductibility, the RNG seed is set prior to the items
 # dict initialization. It is also seeded in main().
@@ -35,10 +37,18 @@ random.seed(64)
 
 # Create the item dictionary: item name is an integer, and value is 
 # a (weight, value) 2-uple.
-items = {}
+items = []
 # Create random items and store them in the items' dictionary.
-for i in range(NBR_ITEMS):
-    items[i] = (random.randint(1, 10), random.uniform(0, 100))
+with open('boardData.csv', 'r') as csvfile:
+    boardreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+    for row in boardreader:
+        item = []
+        item.append(float(row[0]))
+        item.append(int(row[1]))
+        item.append(int(row[2]))
+        item.append(int(row[3]))
+        items.append(item)
+        NBR_ITEMS+=1
 
 creator.create("Fitness", base.Fitness, weights=(-1.0, 1.0))
 creator.create("Individual", set, fitness=creator.Fitness)
