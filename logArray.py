@@ -6,8 +6,7 @@ MAX_SED = 12
 LOG_LEN = 192
 MAX_SIZE = 24
 
-def nextCross(prev,minD):
-    radius = int(diameter/2)
+def nextCross(prev):
     cross = [[0 for c in range(MAX_SIZE)] for r in range(MAX_SIZE)] 
     minY = MAX_SIZE
     minX = MAX_SIZE
@@ -16,35 +15,40 @@ def nextCross(prev,minD):
     for r in range(MAX_SIZE):
         for c in range (MAX_SIZE):
             if prev[r][c] == 1:
-                if r < minY:
+                if r < minY and r > 0:
                     minY = r
-                if r > maxY:
+                if r > maxY and r<MAX_SIZE:
                     maxY = r
-                if c < minX:
+                if c < minX and c > 0:
                     minX = c
-                if c > maxX:
+                if c > maxX and c<MAX_SIZE:
                     maxX = c
-    midpointX = int((maxX+minX)/2)
-    midpointY = int((maxY+minY)/2)
-    radius = int(((maxX-minX)+(maxY-minY))/2)
+    midpointX = int((float(maxX+minX+random.randint(0,1)))/2.0)
+    midpointY = int((float(maxY+minY+random.randint(0,1)))/2.0)
+    radius = int(((maxX-minX)+(maxY-minY))/4)
+    if(radius < MIN_SED/2):
+        radius = (MIN_SED/2) + 1
+    if(radius > MAX_SED/2):
+        radius = (MAX_SED/2) - 1
+    print(minY,maxY,minX,maxX,radius)
     for r in range(MAX_SIZE):
         for c in range (MAX_SIZE):
             manhatten = abs(midpointX-c) + abs(midpointY-r)
-            manhatten += 1
-            manhatten -= random.randint(0,2);
-            if manhatten < radius:
+            manhatten -= random.randint(0,1);
+            if manhatten <= radius:
                 cross[r][c] = 1
 
-    print("__"*MAX_SIZE)
+    print(midpointY,midpointX)
+    print("_"*MAX_SIZE)
     for r in range(MAX_SIZE):
         print("|",end='')
         for c in range (MAX_SIZE):
             if cross[r][c] == 0:
-                print("  ",end='')
+                print(" ",end='')
             else:
-                print("##",end='')
+                print("#",end='')
         print("|")
-    print("__"*MAX_SIZE)
+    print("_"*MAX_SIZE)
     return cross
 
 def initCross(diameter):
@@ -56,30 +60,29 @@ def initCross(diameter):
     for r in range(MAX_SIZE):
         for c in range (MAX_SIZE):
             manhatten = abs(midpointX-c) + abs(midpointY-r)
-            manhatten += 1
-            manhatten -= random.randint(0,2);
+            manhatten -= random.randint(0,1);
             if manhatten < radius:
                 cross[r][c] = 1
-    print("__"*MAX_SIZE)
+    print("_"*MAX_SIZE)
     for r in range(MAX_SIZE):
         print("|",end='')
         for c in range (MAX_SIZE):
             if cross[r][c] == 0:
-                print("  ",end='')
+                print(" ",end='')
             else:
-                print("##",end='')
+                print("#",end='')
         print("|")
-    print("__"*MAX_SIZE)
+    print("_"*MAX_SIZE)
     return cross
 
 
 def makeLog():
-    log = np.array[]
+    log = []
     minDiameter = random.randint(MIN_SED,MAX_SED)
     minEnd = initCross(minDiameter)
-    log.append(minSlice)
-    for z in range(1,LOG_LEN):
-        log.append(nextCross(log[z],minDiameter)
+    log.append(minEnd)
+    for z in range(0,LOG_LEN):
+        log.append(nextCross(log[z]))
     rev = random.randint(0,1)
     if rev==1:
         log.reverse()
