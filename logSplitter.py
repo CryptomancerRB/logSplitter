@@ -63,10 +63,18 @@ toolbox.register("individual", tools.initRepeat, creator.Individual,
     toolbox.attr_item, IND_INIT_SIZE)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
+def overlap(Brd1, Brd2):
+	c = 0
+	for dim in range(3)
+	if ((((Brd1[dim] + Brd1[W+dim]) > Brd2[X]) and (Brd1[dim] < Brd2[dim] ) ) or 
+		((Brd1[dim] < (Brd2[dim] + Brd2[W+dim])) and (Brd1[dim] > Brd2[dim])): # If x overlaps
+		c += 1
+	return (True if c = 3 else False)
+
 def evalSolution(individual):
     value = 0.0
     for item in individual:
-        value += items[item][3]
+        value += items[item][6]
     return value
 
 def cxSet(ind1, ind2):
@@ -81,7 +89,7 @@ def cxSet(ind1, ind2):
     
 def mutSet(individual):
     """Mutation that pops or add an element."""
-    if random.random() < 0.5:
+    if random.random() < 0.3:
         if len(individual) > 0:     # We cannot pop from an empty set
             individual.remove(random.choice(sorted(tuple(individual))))
     else:
