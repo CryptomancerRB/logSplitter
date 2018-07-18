@@ -90,6 +90,10 @@ def makeBoardSet(log):
                 random.randint(MAX_SIZE-boardType[1]),
                 random.randint(LOG_LEN-boardType[2])]
     board = boardPos+boardType
+    board = fitBoardInLog(board,myLog) 
+    return [board]
+
+def fitBoardInLog(board,log):
     boardCenter = []
     boardCenter.append(board[X]+(board[W]/2)
     boardCenter.append(board[Y]+(board[H]/2)
@@ -105,8 +109,7 @@ def makeBoardSet(log):
         else:
             board[Y] += dirY
             boardCenter[Y] += dirX
-    
-    return [board]
+    return board
 
 def boardInLog(board,log):
     for f in range(board[Z],board[Z]+board[D]+1):
@@ -119,17 +122,19 @@ def boardInLog(board,log):
 def evalSolution(individual):
     value = 0.0
     for item in individual:
-        value += items[item][6]
+        value += items[item][V]
     return value
+
+def addBoards(baseBoards,newBoards):
 
 def cxSet(ind1, ind2):
     """Apply a crossover operation on input sets. The first child is the
     intersection of the two sets, the second child is the difference of the
     two sets.
     """
-    temp = set(ind1)                # Used in order to keep type
-    ind1 &= ind2                    # Intersection (inplace)
-    ind2 ^= temp                    # Symmetric Difference (inplace)
+    temp = ind1.copy()
+    ind1 = addBoards(temp,ind2)
+    ind2 = addBoards(ind2,temp)
     return ind1, ind2
     
 def mutSet(individual):
