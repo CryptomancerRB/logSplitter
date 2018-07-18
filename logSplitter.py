@@ -30,6 +30,14 @@ IND_INIT_SIZE = 5
 MAX_ITEM = 50
 MAX_WEIGHT = 50
 NBR_ITEMS = 0
+X = 0
+Y = 1
+Z = 2
+W = 3
+H = 4
+D = 5
+V = 6
+myLog = logArray.makeLog()
 
 # To assure reproductibility, the RNG seed is set prior to the items
 # dict initialization. It is also seeded in main().
@@ -43,10 +51,10 @@ with open('boardData.csv', 'r') as csvfile:
     boardreader = csv.reader(csvfile, delimiter=',', quotechar='|')
     for row in boardreader:
         item = []
-        item.append(float(row[0]))
+        item.append(int(row[0]))
         item.append(int(row[1]))
         item.append(int(row[2]))
-        item.append(int(row[3]))
+        item.append(float(row[3]))
         items.append(item)
         NBR_ITEMS+=1
 
@@ -57,11 +65,49 @@ toolbox = base.Toolbox()
 
 # Attribute generator
 toolbox.register("attr_item", random.randrange, NBR_ITEMS)
+toolbox.register("boardSet", makeBoardSet, myLog)
 
 # Structure initializers
-toolbox.register("individual", tools.initRepeat, creator.Individual, 
-    toolbox.attr_item, IND_INIT_SIZE)
+toolbox.register("individual", tools.initIter, creator.Individual, toolbox.boardSet)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+
+
+def makeBoardSet(log):
+    boardType = random.choice(items)
+    sideways = random.randint(0,1)
+    if(sideways == 1):
+        TEMP = boardType[0]
+        boardType[0] = boardType[1]
+        boardType[1] = TEMP
+    boardPos = [random.randint(MAX_SIZE-boardType[0]),
+                random.randint(MAX_SIZE-boardType[1]),
+                random.randint(LOG_LEN-boardType[2])]
+    board = boardPos+boardType
+    boardCenter = []
+    boardCenter.append(board[X]+(board[W]/2)
+    boardCenter.append(board[Y]+(board[H]/2)
+    boardCenter.append(board[Z]+(board[D]/2)
+    logCenter = midpoint(log,boardCenter[2])
+    dirX = 1 if (boardCenter[X] < logCenter[X]) else -1
+    dirY = 1 if (boardCenter[Y] < logCenter[Y]) else -1
+
+    while not boardInLog(board,log):
+        if math.abs(boardCenter[X] - logCenter[X]) > math.abs(boardCenter[Y] - logCenter[Y]):
+            board[X] += dirX
+            boardCenter[X] += dirX
+        else:
+            board[Y] += dirY
+            boardCenter[Y] += dirX
+    
+    return [board]
+
+def boardInLog(board,log):
+    for f in range(board[Z],board[Z]+board[D]+1):
+        for r in range(board[Y],board[Y]+board[H]+1):
+            for c in range(board[X],board[X]+board[W]+1):
+                if log[f][r][c] == 0:
+                    return False
+    return True
 
 def evalKnapsack(individual):
     weight = 0.0
