@@ -58,7 +58,7 @@ with open('boardData.csv', 'r') as csvfile:
         items.append(item)
         NBR_ITEMS+=1
 
-creator.create("Fitness", base.Fitness, weights=(-1.0, 1.0))
+creator.create("Fitness", base.Fitness, weights=(1.0))
 creator.create("Individual", set, fitness=creator.Fitness)
 
 toolbox = base.Toolbox()
@@ -71,6 +71,7 @@ toolbox.register("boardSet", makeBoardSet, myLog)
 toolbox.register("individual", tools.initIter, creator.Individual, toolbox.boardSet)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
+<<<<<<< HEAD
 
 def makeBoardSet(log):
     boardType = random.choice(items)
@@ -109,15 +110,11 @@ def boardInLog(board,log):
                     return False
     return True
 
-def evalKnapsack(individual):
-    weight = 0.0
+def evalSolution(individual):
     value = 0.0
     for item in individual:
-        weight += items[item][0]
-        value += items[item][1]
-    if len(individual) > MAX_ITEM or weight > MAX_WEIGHT:
-        return 10000, 0             # Ensure overweighted bags are dominated
-    return weight, value
+        value += items[item][3]
+    return value
 
 def cxSet(ind1, ind2):
     """Apply a crossover operation on input sets. The first child is the
@@ -138,7 +135,7 @@ def mutSet(individual):
         individual.add(random.randrange(NBR_ITEMS))
     return individual,
 
-toolbox.register("evaluate", evalKnapsack)
+toolbox.register("evaluate", evalSolution)
 toolbox.register("mate", cxSet)
 toolbox.register("mutate", mutSet)
 toolbox.register("select", tools.selNSGA2)
