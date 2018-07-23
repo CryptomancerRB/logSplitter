@@ -68,18 +68,19 @@ creator.create("Individual", set, fitness=creator.Fitness)
 toolbox = base.Toolbox()
 
 def makeBoardSet(log):
-    boardType = random.choice(items)
-    sideways = random.randint(0,1)
-    if(sideways == 1):
-        TEMP = boardType[0]
-        boardType[0] = boardType[1]
-        boardType[1] = TEMP
-    boardPos = [random.randint(0, logArray.get_max_size()-boardType[0]),
-                random.randint(0, logArray.get_max_size()-boardType[1]),
-                random.randint(0, logArray.get_log_len()-boardType[2])]
-    board = boardPos+boardType
-    board = fitBoardInLog(board,myLog) 
-    return [board]
+    for boardType in random.sample(items,len(items)):
+        sideways = random.randint(0,1)
+        if(sideways == 1):
+            TEMP = boardType[0]
+            boardType[0] = boardType[1]
+            boardType[1] = TEMP
+        boardPos = [random.randint(0, logArray.get_max_size()-boardType[0]),
+                    random.randint(0, logArray.get_max_size()-boardType[1]),
+                    random.randint(0, logArray.get_log_len()-boardType[2])]
+        board = boardPos+boardType
+        boardFitted = fitBoardInLog(board,myLog) 
+        if boardFitted[0]:
+            return [boardFitted[1]]
 
 # Attribute generator
 toolbox.register("attr_item", random.randrange, NBR_ITEMS)
@@ -106,21 +107,22 @@ def fitBoardInLog(board,log):
     dirY = 1 if (boardCenter[Y] < logCenter[Y]) else -1
 
     while not boardInLog(board,log):
-        if abs(boardCenter[X] - logCenter[X]) > abs(boardCenter[Y] - logCenter[Y]):
+        if abs(boardCenter[X] - logCenter[X]) >= abs(boardCenter[Y] - logCenter[Y]):
             board[X] += dirX
             boardCenter[X] += dirX
         else:
             board[Y] += dirY
-            boardCenter[Y] += dirX
-    return board
+            boardCenter[Y] += dirY
+        if ((dirX == 1 and boardCenter[X] > logCenter[X]) or (dirX == -1 and boardCenter[X] < logCenter[X])) or ((dirY == 1 and boardCenter[Y] > logCenter[Y]) or (dirY == -1 and boardCenter[Y] < logCenter[Y])):
+            return [False,[]]
+
+        
+    return [True,board]
 
 def boardInLog(board,log):
     for f in range(board[Z],board[Z]+board[D]+1):
         for r in range(board[Y],board[Y]+board[H]+1):
             for c in range(board[X],board[X]+board[W]+1):
-                print(r,board[Y],board[H])
-                #if f < 0 or r < 0 or c < 0 or f >= logArray.get_log_len() or r >= logArray.get_max_size() or c >= logArray.get_max_size():
-                    #return False
                 if log[f][r][c] == 0:
                     return False
     return True
