@@ -137,6 +137,19 @@ def addBoards(baseBoards,newBoards):
             returnBoards.append(newBoard)
     return returnBoards
 
+def translate(log,individ,index,dir,axis):
+    newBoard = individ.pop(index)
+    while(boardInLog(newBoard,log)):
+        newBoard[axis] += dir
+        for i in range(len(individ)):
+            if overlap(individ[i],newBoard):
+                newBoard[axis] -= dir
+                individ.append(newBoard)
+                return individ
+    newBoard[axis] -= dir
+    individ.append(newBoard)
+    return individ
+
 def cxSet(ind1, ind2):
     """Apply a crossover operation on input sets. The first child is the
     intersection of the two sets, the second child is the difference of the
@@ -148,13 +161,18 @@ def cxSet(ind1, ind2):
     return ind1, ind2
     
 def mutSet(individual):
-    """Mutation that pops or add an element."""
-    if random.random() < 0.3:
-        if len(individual) > 0:     # We cannot pop from an empty set
-            individual.remove(random.choice(sorted(tuple(individual))))
+    mutationSelected = random.random()
+    dir = (2*random.randint(0,1))-1
+    choice = random.randint(0,len(individual)-1))
+    if mutationSelected < 0.3:
+       individual = translate(myLog,individual,choice,dir,X) 
+    elif mutationSelected < 0.6:
+       individual = translate(myLog,individual,choice,dir,Y) 
+    elif mutationSelected < 0.9:
+       individual = translate(myLog,individual,choice,dir,Z) 
     else:
-        individual.add(random.randrange(NBR_ITEMS))
-    return individual,
+        individual.pop(choice)
+    return individual
 
 toolbox.register("evaluate", evalSolution)
 toolbox.register("mate", cxSet)
