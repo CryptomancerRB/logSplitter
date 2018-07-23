@@ -21,10 +21,14 @@ import numpy
 
 import csv
 
+import math
+
 from deap import algorithms
 from deap import base
 from deap import creator
 from deap import tools
+
+# logArray.get_logArray.get_max_size()
 
 IND_INIT_SIZE = 5
 MAX_ITEM = 50
@@ -63,22 +67,6 @@ creator.create("Individual", set, fitness=creator.Fitness)
 
 toolbox = base.Toolbox()
 
-# Attribute generator
-toolbox.register("attr_item", random.randrange, NBR_ITEMS)
-toolbox.register("boardSet", makeBoardSet, myLog)
-
-# Structure initializers
-toolbox.register("individual", tools.initIter, creator.Individual, toolbox.boardSet)
-toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-
-def overlap(Brd1, Brd2):
-	c = 0
-	for dim in range(3)
-	if ((((Brd1[dim] + Brd1[W+dim]) > Brd2[X]) and (Brd1[dim] < Brd2[dim] ) ) or 
-		((Brd1[dim] < (Brd2[dim] + Brd2[W+dim])) and (Brd1[dim] > Brd2[dim])): # If x overlaps
-		c += 1
-	return (True if c = 3 else False)
-
 def makeBoardSet(log):
     boardType = random.choice(items)
     sideways = random.randint(0,1)
@@ -86,24 +74,39 @@ def makeBoardSet(log):
         TEMP = boardType[0]
         boardType[0] = boardType[1]
         boardType[1] = TEMP
-    boardPos = [random.randint(MAX_SIZE-boardType[0]),
-                random.randint(MAX_SIZE-boardType[1]),
-                random.randint(LOG_LEN-boardType[2])]
+    boardPos = [random.randint(0, logArray.get_max_size()-boardType[0]),
+                random.randint(0, logArray.get_max_size()-boardType[1]),
+                random.randint(0, logArray.get_log_len()-boardType[2])]
     board = boardPos+boardType
     board = fitBoardInLog(board,myLog) 
     return [board]
 
+# Attribute generator
+toolbox.register("attr_item", random.randrange, NBR_ITEMS)
+toolbox.register("boardSet", makeBoardSet, myLog)
+
+# Structure initializers
+toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.boardSet)
+toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+
+def overlap(Brd1, Brd2):
+    c = 0
+    for dim in range(3):
+        if (((Brd1[dim] + Brd1[W+dim]) > Brd2[X]) and (Brd1[dim] < Brd2[dim] ) ) or ( (Brd1[dim] < (Brd2[dim] + Brd2[W+dim])) and (Brd1[dim] > Brd2[dim])): # If x overlaps
+            c += 1
+    return (True if c == 3 else False)
+
 def fitBoardInLog(board,log):
     boardCenter = []
-    boardCenter.append(board[X]+(board[W]/2)
-    boardCenter.append(board[Y]+(board[H]/2)
-    boardCenter.append(board[Z]+(board[D]/2)
-    logCenter = midpoint(log,boardCenter[2])
+    boardCenter.append(int(round((board[X]+(board[W]/2)),0)))
+    boardCenter.append(int(round((board[Y]+(board[H]/2)),0)))
+    boardCenter.append(int(round((board[Z]+(board[D]/2)),0)))
+    logCenter = logArray.midpoint(log,boardCenter[2])
     dirX = 1 if (boardCenter[X] < logCenter[X]) else -1
     dirY = 1 if (boardCenter[Y] < logCenter[Y]) else -1
 
     while not boardInLog(board,log):
-        if math.abs(boardCenter[X] - logCenter[X]) > math.abs(boardCenter[Y] - logCenter[Y]):
+        if abs(boardCenter[X] - logCenter[X]) > abs(boardCenter[Y] - logCenter[Y]):
             board[X] += dirX
             boardCenter[X] += dirX
         else:
@@ -115,6 +118,9 @@ def boardInLog(board,log):
     for f in range(board[Z],board[Z]+board[D]+1):
         for r in range(board[Y],board[Y]+board[H]+1):
             for c in range(board[X],board[X]+board[W]+1):
+                print(r,board[Y],board[H])
+                #if f < 0 or r < 0 or c < 0 or f >= logArray.get_log_len() or r >= logArray.get_max_size() or c >= logArray.get_max_size():
+                    #return False
                 if log[f][r][c] == 0:
                     return False
     return True
@@ -163,7 +169,7 @@ def cxSet(ind1, ind2):
 def mutSet(individual):
     mutationSelected = random.random()
     dir = (2*random.randint(0,1))-1
-    choice = random.randint(0,len(individual)-1))
+    choice = random.randint(0,len(individual)-1)
     if mutationSelected < 0.3:
        individual = translate(myLog,individual,choice,dir,X) 
     elif mutationSelected < 0.6:
