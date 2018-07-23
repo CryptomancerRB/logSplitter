@@ -62,8 +62,8 @@ with open('boardData.csv', 'r') as csvfile:
         items.append(item)
         NBR_ITEMS+=1
 
-creator.create("Fitness", base.Fitness, weights=(1.0))
-creator.create("Individual", set, fitness=creator.Fitness)
+creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+creator.create("Individual", list, fitness=creator.FitnessMax)
 
 toolbox = base.Toolbox()
 
@@ -79,8 +79,11 @@ def makeBoardSet(log):
                     random.randint(0, logArray.get_log_len()-boardType[2])]
         board = boardPos+boardType
         boardFitted = fitBoardInLog(board,myLog) 
+        print(boardFitted)
         if boardFitted[0]:
-            return [boardFitted[1]]
+            print("Yo We made it")
+            board = boardFitted[1]
+            return [board]
 
 # Attribute generator
 toolbox.register("attr_item", random.randrange, NBR_ITEMS)
@@ -114,10 +117,16 @@ def fitBoardInLog(board,log):
             board[Y] += dirY
             boardCenter[Y] += dirY
         if ((dirX == 1 and boardCenter[X] > logCenter[X]) or (dirX == -1 and boardCenter[X] < logCenter[X])) or ((dirY == 1 and boardCenter[Y] > logCenter[Y]) or (dirY == -1 and boardCenter[Y] < logCenter[Y])):
-            return [False,[]]
+            re = []
+            re.append(False)
+            re.append([])
+            return re
 
-        
-    return [True,board]
+    re = []
+    re.append(True)
+    re.append(board)
+    print(re)
+    return re
 
 def boardInLog(board,log):
     for f in range(board[Z],board[Z]+board[D]+1):
@@ -130,8 +139,9 @@ def boardInLog(board,log):
 def evalSolution(individual):
     value = 0.0
     for item in individual:
-        value += items[item][V]
-    return value
+        print(item)
+        value += item[V]
+    return value, 0
 
 def addBoards(baseBoards,newBoards):
     returnBoards = baseBoards.copy()
