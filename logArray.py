@@ -6,6 +6,15 @@ MAX_SED = 12
 LOG_LEN = 192
 MAX_SIZE = 24
 
+def get_min_sed():
+    return MIN_SED
+def get_max_sed():
+    return MAX_SED
+def get_log_len():
+    return LOG_LEN
+def get_max_size():
+    return MAX_SIZE
+
 def nextCross(prev):
     cross = [[0 for c in range(MAX_SIZE)] for r in range(MAX_SIZE)] 
     minY = MAX_SIZE
@@ -39,6 +48,26 @@ def nextCross(prev):
 
     return cross
 
+def midpoint(log, z_coord):
+    minY = MAX_SIZE
+    minX = MAX_SIZE
+    maxY = 0
+    maxX = 0
+    for r in range(MAX_SIZE):
+        for c in range (MAX_SIZE):
+            if log[z_coord][r][c] == 1:
+                if r < minY and r > 0:
+                    minY = r
+                if r > maxY and r < MAX_SIZE:
+                    maxY = r
+                if c < minX and c > 0:
+                    minX = c
+                if c > maxX and c < MAX_SIZE:
+                    maxX = c
+    midpointX = int(round(((float(maxX + minX))/2.0),0))
+    midpointY = int(round(((float(maxY + minY))/2.0),0))
+    return [midpointX, midpointY]
+    
 def initCross(diameter):
     radius = int(diameter/2)
     cross = [[0 for c in range(MAX_SIZE)] for r in range(MAX_SIZE)] 
