@@ -141,7 +141,7 @@ def evalSolution(individual):
     value = 0.0
     for item in individual:
         value += item[V]
-    return [value, 0]
+    return (value, 0)
 
 def addBoards(baseBoards,newBoards):
     returnBoards = baseBoards.copy()
@@ -172,88 +172,149 @@ def translate(log,individual,index,dir,axis):
     individ.append(newBoard)
     return individ
 
-def cxSet(ind1, ind2):
-    """Apply a crossover operation on input sets. The first child is the
-    intersection of the two sets, the second child is the difference of the
-    two sets.
-    """
+def cxList(ind1, ind2):
     temp = ind1.copy()
     ind1 = addBoards(temp,ind2)
     ind2 = addBoards(ind2,temp)
     return creator.Individual(ind1), creator.Individual(ind2)
+    #return creator.Individual(temp), creator.Individual(temp)
+
     
-def mutSet(individual):
+def mutList(individual):
     mutationSelected = random.random()
     dir = (2*random.randint(0,1))-1
+    if len(individual)==0:
+        return (creator.Individual(individual),)
     choice = random.randint(0,len(individual)-1)
-    print(dir,choice,mutationSelected)
-    print(individual)
-    if mutationSelected < 0.13:
+    #print(dir,choice,mutationSelected)
+    #print(individual)
+    if mutationSelected < 0.33:
        individual = translate(myLog,individual,choice,dir,X) 
-    elif mutationSelected < 0.16:
+    elif mutationSelected < 0.66:
        individual = translate(myLog,individual,choice,dir,Y) 
-    elif mutationSelected < 0.19:
+    elif mutationSelected < 0.99:
        individual = translate(myLog,individual,choice,dir,Z) 
     else:
         individual.pop(choice)
-    print(individual)
     return (creator.Individual(individual),)
-    #return creator.Individual(),
 
 toolbox.register("evaluate", evalSolution)
-toolbox.register("mate", cxSet)
-toolbox.register("mutate", mutSet)
+toolbox.register("mate", cxList)
+toolbox.register("mutate", mutList)
 toolbox.register("select", tools.selNSGA2)
 
 def main():
     random.seed(64)
+
     #NGEN = 50
-    NGEN = 1
     #MU = 50
-    MU = 1
     #LAMBDA = 100
-    LAMBDA = 1
     #CXPB = 0.7
-    CXPB = 0
     #MUTPB = 0.2
-    MUTPB = 1
+
+    NGEN = 10
+    MU = 50
+    LAMBDA = 1
+    CXPB = 0.7
+    MUTPB = 0.2
     
     pop = toolbox.population(n=MU)
-    hof = tools.ParetoFront()
-    stats = tools.Statistics(lambda ind: ind.fitness.values)
-    stats.register("avg", numpy.mean, axis=0)
-    stats.register("std", numpy.std, axis=0)
-    stats.register("min", numpy.min, axis=0)
-    stats.register("max", numpy.max, axis=0)
     
-    algorithms.eaMuPlusLambda(pop, toolbox, MU, LAMBDA, CXPB, MUTPB, NGEN, stats, halloffame=hof)
+    for g in range(NGEN):
+	# Select the next generation individuals
+        offspring = toolbox.select(pop, len(pop))
+
+	# Clone the selected individuals
+        offspring = list(map(toolbox.clone, offspring))
+
+	# Apply crossover on the offspring
+        i = 0
+        for child1, child2 in zip(offspring[::2], offspring[1::2]):
+            if random.random() < CXPB:
+                #child1,child2 = toolbox.mate(child1, child2)
+                #del child1.fitness.values
+                #del child2.fitness.values
+
+                a,b =  toolbox.mate(child1,child2)
+                offspring[i], offspring[i+1] = toolbox.mate(child1,child2)
+                del child1.fitness.values
+                del child2.fitness.values
+            i = i + 1
+
+	# Apply mutation on the offspring
+        for mutant in offspring:
+            if random.random() < MUTPB:
+                toolbox.mutate(mutant)
+                del mutant.fitness.values
+
+	# Evaluate the individuals with an invalid fitness
+        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+        fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+        for ind, fit in zip(invalid_ind, fitnesses):
+            ind.fitness.values = fit
+
+	# The population is entirely replaced by the offspring
+        pop[:] = offspring
+    hof = []
+    for sol in pop:
+        if(len(hof) < 3):
+            hof.append(sol)
+        else:
+            for goodSol in hof:
+                if toolbox.evaluate(sol) > toolbox.evaluate(goodSol):
+                    hof.remove(goodSol)
+                    hof.append(sol)
+    hof.sort(key=lambda x: toolbox.evaluate(x)[0],reverse=True)
+    for sol in hof:
+        print()
+        print("Score:",toolbox.evaluate(sol)[0])
+        sol.sort(key=lambda x: x[V],reverse=True)
+        for board in sol:
+            print(board)
+
+    #hof = tools.ParetoFront()
+    #stats = tools.Statistics(lambda ind: ind.fitness.values)
+    #stats.register("avg", numpy.mean, axis=0)
+    #stats.register("std", numpy.std, axis=0)
+    #stats.register("min", numpy.min, axis=0)
+    #stats.register("max", numpy.max, axis=0)
+    
+    #algorithms.eaMuPlusLambda(pop, toolbox, MU, LAMBDA, CXPB, MUTPB, NGEN, stats, halloffame=hof)
 
 
-    print(pop)
-    for b in pop[0]:
-        print("X from",b[X],"to",b[X]+b[W],end='    ')
-        print("Y from",b[Y],"to",b[Y]+b[H],end='    ')
-        print("Z from",b[Z],"to",b[Z]+b[D])
-    MAX_SIZE = logArray.get_max_size()
-    print("_"*MAX_SIZE)
-    for r in range(MAX_SIZE):
-        print("|",end='')
-        for c in range (MAX_SIZE):
-            numbered = False
-            for i in range(len(pop[0])):
-                cross = pop[0][i]
-                if r>=cross[Y] and r<cross[Y] + cross[H] and c>=cross[X] and c<cross[X] + cross[W]:
-                    print(i,end='')
-                    numbered = True
-            if not numbered:
-                if myLog[85][r][c] == 0:
-                    print(" ",end='')
-                else:
-                    print("#",end='')
-        print("|")
-    print("_"*MAX_SIZE)
+    #ind1 = toolbox.individual()
+    #print("ind1:",ind1)
+    #mutant = toolbox.clone(ind1)
+    #print("mut:",mutant)
+    #ind2, = toolbox.mutate(mutant)
+    #print("ind2:",ind2)
+    #print("mut:",mutant)
 
-    return pop, stats, hof
+    #return
+    #print(pop)
+    #for b in pop[0]:
+        #print("X from",b[X],"to",b[X]+b[W],end='    ')
+        #print("Y from",b[Y],"to",b[Y]+b[H],end='    ')
+        #print("Z from",b[Z],"to",b[Z]+b[D])
+    #MAX_SIZE = logArray.get_max_size()
+    #print("_"*MAX_SIZE)
+    #for r in range(MAX_SIZE):
+        #print("|",end='')
+        #for c in range (MAX_SIZE):
+            #numbered = False
+            #for i in range(len(pop[0])):
+                #cross = pop[0][i]
+                #if r>=cross[Y] and r<cross[Y] + cross[H] and c>=cross[X] and c<cross[X] + cross[W]:
+                    #print(i,end='')
+                    #numbered = True
+            #if not numbered:
+                #if myLog[85][r][c] == 0:
+                    #print(" ",end='')
+                #else:
+                    #print("#",end='')
+        #print("|")
+    #print("_"*MAX_SIZE)
+    #return pop, stats, hof
                  
 if __name__ == "__main__":
     main() 

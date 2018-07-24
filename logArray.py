@@ -1,10 +1,10 @@
 import random
 import numpy as np
 
-MIN_SED = 12
-MAX_SED = 24
+MIN_SED = 24
+MAX_SED = 36
 LOG_LEN = 192
-MAX_SIZE = 36
+MAX_SIZE = 48
 
 def get_min_sed():
     return MIN_SED
