@@ -81,7 +81,7 @@ def makeBoardSet(log):
         boardFitted = fitBoardInLog(board,myLog) 
         if boardFitted[0]:
             board = boardFitted[1]
-            return board
+            return creator.Individual(board)
 
 # Attribute generator
 #toolbox.register("attr_item", random.randrange, NBR_ITEMS)
@@ -91,12 +91,22 @@ toolbox.register("boardSet", makeBoardSet, myLog)
 toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.boardSet, 1)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
+def overlapping(Brd1,Brd2,dim):
+    if Brd1[dim] <= Brd2[dim] and Brd1[dim]+Brd1[dim+W] > Brd2[dim]:
+        return True
+    else:
+        return False
+
+
 def overlap(Brd1, Brd2):
     c = 0
     for dim in range(3):
-        if (((Brd1[dim] + Brd1[W+dim]) > Brd2[X]) and (Brd1[dim] < Brd2[dim] ) ) or ( (Brd1[dim] < (Brd2[dim] + Brd2[W+dim])) and (Brd1[dim] > Brd2[dim])): # If x overlaps
+        if overlapping(Brd1,Brd2,dim) or overlapping(Brd2,Brd1,dim):
             c += 1
-    return (True if c == 3 else False)
+    if c==3:
+        return True
+    else:
+        return False
 
 def fitBoardInLog(board,log):
     boardCenter = []
@@ -129,25 +139,24 @@ def boardInLog(board,log):
 
 def evalSolution(individual):
     value = 0.0
-    print(individual)
     for item in individual:
-        print(item)
         value += item[V]
     return [value, 0]
 
 def addBoards(baseBoards,newBoards):
     returnBoards = baseBoards.copy()
     for newBoard in newBoards:
-        b = False
+        addBoard = True
         for baseBoard in baseBoards:
             if overlap(newBoard, baseBoard):
-                b = True
+                addBoard = False
                 break
-        if b:
+        if addBoard:
             returnBoards.append(newBoard)
     return returnBoards
 
-def translate(log,individ,index,dir,axis):
+def translate(log,individual,index,dir,axis):
+    individ = individual.copy()
     newBoard = individ.pop(index)
     while(boardInLog(newBoard,log)):
         newBoard[axis] += dir
@@ -156,6 +165,9 @@ def translate(log,individ,index,dir,axis):
                 newBoard[axis] -= dir
                 individ.append(newBoard)
                 return individ
+        if newBoard[axis] < 0 or (axis == Z and newBoard[axis]+newBoard[D] >= logArray.get_log_len()) or (axis != Z and newBoard[axis]+newBoard[3+axis] >= logArray.get_max_size()):
+            break
+
     newBoard[axis] -= dir
     individ.append(newBoard)
     return individ
@@ -168,21 +180,25 @@ def cxSet(ind1, ind2):
     temp = ind1.copy()
     ind1 = addBoards(temp,ind2)
     ind2 = addBoards(ind2,temp)
-    return ind1, ind2
+    return creator.Individual(ind1), creator.Individual(ind2)
     
 def mutSet(individual):
     mutationSelected = random.random()
     dir = (2*random.randint(0,1))-1
     choice = random.randint(0,len(individual)-1)
-    if mutationSelected < 0.3:
+    print(dir,choice,mutationSelected)
+    print(individual)
+    if mutationSelected < 0.13:
        individual = translate(myLog,individual,choice,dir,X) 
-    elif mutationSelected < 0.6:
+    elif mutationSelected < 0.16:
        individual = translate(myLog,individual,choice,dir,Y) 
-    elif mutationSelected < 0.9:
+    elif mutationSelected < 0.19:
        individual = translate(myLog,individual,choice,dir,Z) 
     else:
         individual.pop(choice)
-    return individual
+    print(individual)
+    return (creator.Individual(individual),)
+    #return creator.Individual(),
 
 toolbox.register("evaluate", evalSolution)
 toolbox.register("mate", cxSet)
@@ -191,11 +207,16 @@ toolbox.register("select", tools.selNSGA2)
 
 def main():
     random.seed(64)
-    NGEN = 50
-    MU = 50
-    LAMBDA = 100
-    CXPB = 0.7
-    MUTPB = 0.2
+    #NGEN = 50
+    NGEN = 1
+    #MU = 50
+    MU = 1
+    #LAMBDA = 100
+    LAMBDA = 1
+    #CXPB = 0.7
+    CXPB = 0
+    #MUTPB = 0.2
+    MUTPB = 1
     
     pop = toolbox.population(n=MU)
     hof = tools.ParetoFront()
@@ -205,8 +226,33 @@ def main():
     stats.register("min", numpy.min, axis=0)
     stats.register("max", numpy.max, axis=0)
     
-    #algorithms.eaMuPlusLambda(pop, toolbox, MU, LAMBDA, CXPB, MUTPB, NGEN, stats, halloffame=hof)
+    algorithms.eaMuPlusLambda(pop, toolbox, MU, LAMBDA, CXPB, MUTPB, NGEN, stats, halloffame=hof)
+
+
     print(pop)
+    for b in pop[0]:
+        print("X from",b[X],"to",b[X]+b[W],end='    ')
+        print("Y from",b[Y],"to",b[Y]+b[H],end='    ')
+        print("Z from",b[Z],"to",b[Z]+b[D])
+    MAX_SIZE = logArray.get_max_size()
+    print("_"*MAX_SIZE)
+    for r in range(MAX_SIZE):
+        print("|",end='')
+        for c in range (MAX_SIZE):
+            numbered = False
+            for i in range(len(pop[0])):
+                cross = pop[0][i]
+                if r>=cross[Y] and r<cross[Y] + cross[H] and c>=cross[X] and c<cross[X] + cross[W]:
+                    print(i,end='')
+                    numbered = True
+            if not numbered:
+                if myLog[85][r][c] == 0:
+                    print(" ",end='')
+                else:
+                    print("#",end='')
+        print("|")
+    print("_"*MAX_SIZE)
+
     return pop, stats, hof
                  
 if __name__ == "__main__":
