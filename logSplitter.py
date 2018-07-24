@@ -79,9 +79,7 @@ def makeBoardSet(log):
                     random.randint(0, logArray.get_log_len()-boardType[2])]
         board = boardPos+boardType
         boardFitted = fitBoardInLog(board,myLog) 
-        print(boardFitted)
         if boardFitted[0]:
-            print("Yo We made it")
             board = boardFitted[1]
             return [board]
 
@@ -117,16 +115,9 @@ def fitBoardInLog(board,log):
             board[Y] += dirY
             boardCenter[Y] += dirY
         if ((dirX == 1 and boardCenter[X] > logCenter[X]) or (dirX == -1 and boardCenter[X] < logCenter[X])) or ((dirY == 1 and boardCenter[Y] > logCenter[Y]) or (dirY == -1 and boardCenter[Y] < logCenter[Y])):
-            re = []
-            re.append(False)
-            re.append([])
-            return re
+            return [False,[]]
 
-    re = []
-    re.append(True)
-    re.append(board)
-    print(re)
-    return re
+    return [True,board]
 
 def boardInLog(board,log):
     for f in range(board[Z],board[Z]+board[D]+1):
@@ -139,7 +130,6 @@ def boardInLog(board,log):
 def evalSolution(individual):
     value = 0.0
     for item in individual:
-        print(item)
         value += item[V]
     return value, 0
 

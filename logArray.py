@@ -16,6 +16,7 @@ def get_max_size():
     return MAX_SIZE
 
 def nextCross(prev):
+    return prev
     cross = [[0 for c in range(MAX_SIZE)] for r in range(MAX_SIZE)] 
     minY = MAX_SIZE
     minX = MAX_SIZE
