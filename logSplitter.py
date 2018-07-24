@@ -81,14 +81,14 @@ def makeBoardSet(log):
         boardFitted = fitBoardInLog(board,myLog) 
         if boardFitted[0]:
             board = boardFitted[1]
-            return [board]
+            return board
 
 # Attribute generator
-toolbox.register("attr_item", random.randrange, NBR_ITEMS)
+#toolbox.register("attr_item", random.randrange, NBR_ITEMS)
 toolbox.register("boardSet", makeBoardSet, myLog)
 
 # Structure initializers
-toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.boardSet)
+toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.boardSet, 1)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 def overlap(Brd1, Brd2):
@@ -129,9 +129,11 @@ def boardInLog(board,log):
 
 def evalSolution(individual):
     value = 0.0
+    print(individual)
     for item in individual:
+        print(item)
         value += item[V]
-    return value, 0
+    return [value, 0]
 
 def addBoards(baseBoards,newBoards):
     returnBoards = baseBoards.copy()
@@ -203,9 +205,8 @@ def main():
     stats.register("min", numpy.min, axis=0)
     stats.register("max", numpy.max, axis=0)
     
-    algorithms.eaMuPlusLambda(pop, toolbox, MU, LAMBDA, CXPB, MUTPB, NGEN, stats,
-                              halloffame=hof)
-    
+    #algorithms.eaMuPlusLambda(pop, toolbox, MU, LAMBDA, CXPB, MUTPB, NGEN, stats, halloffame=hof)
+    print(pop)
     return pop, stats, hof
                  
 if __name__ == "__main__":
