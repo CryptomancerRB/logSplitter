@@ -22,6 +22,7 @@ import numpy
 import csv
 
 import math
+import time
 
 from deap import algorithms
 from deap import base
@@ -41,11 +42,10 @@ W = 3
 H = 4
 D = 5
 V = 6
+
 myLog = logArray.makeLog()
 
-# To assure reproductibility, the RNG seed is set prior to the items
-# dict initialization. It is also seeded in main().
-random.seed(64)
+random.seed()
 
 # Create the item dictionary: item name is an integer, and value is 
 # a (weight, value) 2-uple.
@@ -173,30 +173,38 @@ def translate(log,individual,index,dir,axis):
     return individ
 
 def cxList(ind1, ind2):
+    p1Val = evalSolution(ind1)[0]
+    p2Val = evalSolution(ind2)[0]
     temp = ind1.copy()
     ind1 = addBoards(temp,ind2)
     ind2 = addBoards(ind2,temp)
+    c1Val = evalSolution(ind1)[0]
+    c2Val = evalSolution(ind2)[0]
+
     return creator.Individual(ind1), creator.Individual(ind2)
     #return creator.Individual(temp), creator.Individual(temp)
 
     
 def mutList(individual):
+    prev = individual.copy()
     mutationSelected = random.random()
     dir = (2*random.randint(0,1))-1
     if len(individual)==0:
-        return (creator.Individual(individual),)
+        return creator.Individual(individual)
     choice = random.randint(0,len(individual)-1)
-    #print(dir,choice,mutationSelected)
-    #print(individual)
-    if mutationSelected < 0.33:
-       individual = translate(myLog,individual,choice,dir,X) 
-    elif mutationSelected < 0.66:
-       individual = translate(myLog,individual,choice,dir,Y) 
-    elif mutationSelected < 0.99:
-       individual = translate(myLog,individual,choice,dir,Z) 
+    if mutationSelected < 0.0:
+        individual = translate(myLog,individual,choice,dir,X) 
+    elif mutationSelected < 0.0:
+        individual = translate(myLog,individual,choice,dir,Y) 
+    elif mutationSelected < 0.0 and len(individual)>1:
+        individual = translate(myLog,individual,choice,dir,Z) 
     else:
-        individual.pop(choice)
-    return (creator.Individual(individual),)
+        temp = individual.copy()
+        newBoard = toolbox.individual()
+        temp = addBoards(newBoard,temp)
+        if evalSolution(temp) > evalSolution(individual):
+            individual = temp.copy()
+    return creator.Individual(individual)
 
 toolbox.register("evaluate", evalSolution)
 toolbox.register("mate", cxList)
@@ -204,7 +212,6 @@ toolbox.register("mutate", mutList)
 toolbox.register("select", tools.selNSGA2)
 
 def main():
-    random.seed(64)
 
     #NGEN = 50
     #MU = 50
@@ -212,8 +219,10 @@ def main():
     #CXPB = 0.7
     #MUTPB = 0.2
 
-    NGEN = 10
-    MU = 50
+    start_time = time.time()
+
+    NGEN = 100
+    MU = 10
     LAMBDA = 1
     CXPB = 0.7
     MUTPB = 0.2
@@ -231,33 +240,25 @@ def main():
         i = 0
         for child1, child2 in zip(offspring[::2], offspring[1::2]):
             if random.random() < CXPB:
-                #child1,child2 = toolbox.mate(child1, child2)
-                #del child1.fitness.values
-                #del child2.fitness.values
-
-                a,b =  toolbox.mate(child1,child2)
                 offspring[i], offspring[i+1] = toolbox.mate(child1,child2)
-                del child1.fitness.values
-                del child2.fitness.values
             i = i + 1
 
 	# Apply mutation on the offspring
         for mutant in offspring:
             if random.random() < MUTPB:
-                toolbox.mutate(mutant)
-                del mutant.fitness.values
-
-	# Evaluate the individuals with an invalid fitness
-        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitnesses):
-            ind.fitness.values = fit
+                mutant = toolbox.mutate(mutant)
+                #del mutant.fitness.values
 
 	# The population is entirely replaced by the offspring
         pop[:] = offspring
+        offspring.sort(key=lambda x: toolbox.evaluate(x)[0],reverse=True)
+        #print(toolbox.evaluate(offspring[0])[0])
     hof = []
+
+    #print("--- %s seconds ---" % (time.time() - start_time))
+
     for sol in pop:
-        if(len(hof) < 3):
+        if(len(hof) < 1):
             hof.append(sol)
         else:
             for goodSol in hof:
@@ -270,7 +271,8 @@ def main():
         print("Score:",toolbox.evaluate(sol)[0])
         sol.sort(key=lambda x: x[V],reverse=True)
         for board in sol:
-            print(board)
+            None
+            #print(board)
 
     #hof = tools.ParetoFront()
     #stats = tools.Statistics(lambda ind: ind.fitness.values)
