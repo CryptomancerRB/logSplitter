@@ -72,20 +72,27 @@ def midpoint(log, z_coord):
 def initCross(diameter):
     radius = int(diameter/2)
     cross = [[0 for c in range(MAX_SIZE)] for r in range(MAX_SIZE)] 
-    midpointX = random.randint(4+(radius),MAX_SIZE-4-(radius))
-    midpointY = random.randint(4+(radius),MAX_SIZE-4-(radius))
+
+    #midpointX = random.randint(4+(radius),MAX_SIZE-4-(radius))
+    #midpointY = random.randint(4+(radius),MAX_SIZE-4-(radius))
+
+    midpointX = MAX_SIZE/2
+    midpointY = MAX_SIZE/2
+
     for r in range(MAX_SIZE):
         for c in range (MAX_SIZE):
-            manhatten = abs(midpointX-c) + abs(midpointY-r)
-            manhatten -= random.randint(0,1);
-            if manhatten < radius:
+            if (r-midpointX)**2 + (c-midpointY)**2 <= radius**2:
+            #manhatten = abs(midpointX-c) + abs(midpointY-r)
+            #manhatten -= random.randint(0,1);
+            #if manhatten < radius:
                 cross[r][c] = 1
     return cross
 
 
 def makeLog():
     log = []
-    minDiameter = random.randint(MIN_SED,MAX_SED)
+    #minDiameter = random.randint(MIN_SED,MAX_SED)
+    minDiameter = MAX_SED
     minEnd = initCross(minDiameter)
     log.append(minEnd)
     for z in range(0,LOG_LEN):
