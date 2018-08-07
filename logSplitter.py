@@ -1,18 +1,3 @@
-#    This file is part of DEAP.
-#
-#    DEAP is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as
-#    published by the Free Software Foundation, either version 3 of
-#    the License, or (at your option) any later version.
-#
-#    DEAP is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-#    GNU Lesser General Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser General Public
-#    License along with DEAP. If not, see <http://www.gnu.org/licenses/>.
-
 import random
 
 import logArray
@@ -28,8 +13,6 @@ from deap import algorithms
 from deap import base
 from deap import creator
 from deap import tools
-
-# logArray.get_logArray.get_max_size()
 
 IND_INIT_SIZE = 5
 MAX_ITEM = 50
@@ -47,9 +30,8 @@ myLog = logArray.makeLog()
 
 random.seed()
 
-# Create the item dictionary: item name is an integer, and value is 
-# a (weight, value) 2-uple.
 items = []
+
 # Create random items and store them in the items' dictionary.
 with open('boardData.csv', 'r') as csvfile:
     boardreader = csv.reader(csvfile, delimiter=',', quotechar='|')
@@ -84,7 +66,6 @@ def makeBoardSet(log):
             return creator.Individual(board)
 
 # Attribute generator
-#toolbox.register("attr_item", random.randrange, NBR_ITEMS)
 toolbox.register("boardSet", makeBoardSet, myLog)
 
 # Structure initializers
@@ -173,16 +154,11 @@ def translate(log,individual,index,dir,axis):
     return individ
 
 def cxList(ind1, ind2):
-    p1Val = evalSolution(ind1)[0]
-    p2Val = evalSolution(ind2)[0]
     temp = ind1.copy()
     ind1 = addBoards(temp,ind2)
     ind2 = addBoards(ind2,temp)
-    c1Val = evalSolution(ind1)[0]
-    c2Val = evalSolution(ind2)[0]
 
     return creator.Individual(ind1), creator.Individual(ind2)
-    #return creator.Individual(temp), creator.Individual(temp)
 
     
 def mutList(individual):
@@ -213,16 +189,10 @@ toolbox.register("select", tools.selNSGA2)
 
 def main():
 
-    #NGEN = 50
-    #MU = 50
-    #LAMBDA = 100
-    #CXPB = 0.7
-    #MUTPB = 0.2
-
     start_time = time.time()
 
     NGEN = 100
-    MU = 10
+    MU = 100
     LAMBDA = 1
     CXPB = 0.7
     MUTPB = 0.2
@@ -252,13 +222,12 @@ def main():
 	# The population is entirely replaced by the offspring
         pop[:] = offspring
         offspring.sort(key=lambda x: toolbox.evaluate(x)[0],reverse=True)
-        #print(toolbox.evaluate(offspring[0])[0])
     hof = []
 
-    #print("--- %s seconds ---" % (time.time() - start_time))
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     for sol in pop:
-        if(len(hof) < 1):
+        if(len(hof) < 3):
             hof.append(sol)
         else:
             for goodSol in hof:
@@ -271,52 +240,8 @@ def main():
         print("Score:",toolbox.evaluate(sol)[0])
         sol.sort(key=lambda x: x[V],reverse=True)
         for board in sol:
-            None
-            #print(board)
+            print(board)
 
-    #hof = tools.ParetoFront()
-    #stats = tools.Statistics(lambda ind: ind.fitness.values)
-    #stats.register("avg", numpy.mean, axis=0)
-    #stats.register("std", numpy.std, axis=0)
-    #stats.register("min", numpy.min, axis=0)
-    #stats.register("max", numpy.max, axis=0)
-    
-    #algorithms.eaMuPlusLambda(pop, toolbox, MU, LAMBDA, CXPB, MUTPB, NGEN, stats, halloffame=hof)
-
-
-    #ind1 = toolbox.individual()
-    #print("ind1:",ind1)
-    #mutant = toolbox.clone(ind1)
-    #print("mut:",mutant)
-    #ind2, = toolbox.mutate(mutant)
-    #print("ind2:",ind2)
-    #print("mut:",mutant)
-
-    #return
-    #print(pop)
-    #for b in pop[0]:
-        #print("X from",b[X],"to",b[X]+b[W],end='    ')
-        #print("Y from",b[Y],"to",b[Y]+b[H],end='    ')
-        #print("Z from",b[Z],"to",b[Z]+b[D])
-    #MAX_SIZE = logArray.get_max_size()
-    #print("_"*MAX_SIZE)
-    #for r in range(MAX_SIZE):
-        #print("|",end='')
-        #for c in range (MAX_SIZE):
-            #numbered = False
-            #for i in range(len(pop[0])):
-                #cross = pop[0][i]
-                #if r>=cross[Y] and r<cross[Y] + cross[H] and c>=cross[X] and c<cross[X] + cross[W]:
-                    #print(i,end='')
-                    #numbered = True
-            #if not numbered:
-                #if myLog[85][r][c] == 0:
-                    #print(" ",end='')
-                #else:
-                    #print("#",end='')
-        #print("|")
-    #print("_"*MAX_SIZE)
-    #return pop, stats, hof
                  
 if __name__ == "__main__":
     main() 
