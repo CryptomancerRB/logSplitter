@@ -168,11 +168,11 @@ def mutList(individual):
     if len(individual)==0:
         return creator.Individual(individual)
     choice = random.randint(0,len(individual)-1)
-    if mutationSelected < 0.0:
+    if mutationSelected < 0.3:
         individual = translate(myLog,individual,choice,dir,X) 
-    elif mutationSelected < 0.0:
+    elif mutationSelected < 0.6:
         individual = translate(myLog,individual,choice,dir,Y) 
-    elif mutationSelected < 0.0 and len(individual)>1:
+    elif mutationSelected < 0.9 and len(individual)>1:
         individual = translate(myLog,individual,choice,dir,Z) 
     else:
         temp = individual.copy()
